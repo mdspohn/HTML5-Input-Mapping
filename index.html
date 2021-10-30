@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>HTML5 Input Demo</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="main.css" />
+  </head>
+  <body>
+
+    <!-------------------------------->
+    <!-- Canvas ---------------------->
+    <!-------------------------------->
+
+    <canvas id="canvas" width="480" height="270"></canvas>
+
+    <!-------------------------------->
+    <!-- Interface ------------------->
+    <!-------------------------------->
+
+    <section id="interface">
+
+    </section>
+    
+  </body>
+
+  <!---------------------------------->
+  <!-- Engine Classes ---------------->
+  <!---------------------------------->
+
+  <script type="text/javascript" src="src/Device.js"></script>
+  <script type="text/javascript" src="src/Gamepad.js"></script>
+  <script type="text/javascript" src="src/Keyboard.js"></script>
+  <script type="text/javascript" src="src/Mouse.js"></script>
+  <script type="text/javascript" src="src/Input.js"></script>
+  <script type="text/javascript" src="src/Engine.js"></script>
+
+  <!---------------------------------->
+  <!-- Initialization ---------------->
+  <!---------------------------------->
+
+  <script type="text/javascript">
+    const Input  = new InputManager(),
+          Engine = new EngineLoop();
+    
+    Engine.start();
+  </script>
+</html>
