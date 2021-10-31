@@ -2,10 +2,10 @@ class EngineLoop {
     static instance = null;
 
     constructor() {
-        if (Engine.instance !== null)
+        if (EngineLoop.instance !== null)
             return Engine.instance;
 
-        Engine.instance = this;
+            EngineLoop.instance = this;
 
         this.step = (1000 / 20);
         this.running = false;
@@ -18,27 +18,12 @@ class EngineLoop {
 
     // called based on engine step (UPS)
     update(step) {
-        // TODO
+        Input.update(step);
     }
 
     // called based on monitor refresh rate (FPS)
     render(delta) {
         // TODO
-    }
-
-    loop(timestamp) {
-        this.frame = requestAnimationFrame(this.loop);
-        
-        this.last = this.now;
-        this.now = timestamp;
-        this.delta = this.delta + (this.now - this.last);
-
-        while (this.delta >= this.step) {
-            this.delta -= this.step;
-            this.update(this.step);
-        }
-
-        this.render(this.now - this.last);
     }
 
     start() {
@@ -48,7 +33,23 @@ class EngineLoop {
         this.running = true;
         this.now = performance.now();
         this.delta = this.step;
-        this.frame = requestAnimationFrame(this.loop);
+
+        const loop = (timestamp) => {
+            this.frame = requestAnimationFrame(loop);
+            
+            this.last = this.now;
+            this.now = timestamp;
+            this.delta = this.delta + (this.now - this.last);
+
+            while (this.delta >= this.step) {
+                this.delta -= this.step;
+                this.update(this.step);
+            }
+
+            this.render(this.now - this.last);
+        }
+
+        this.frame = requestAnimationFrame(loop);
     }
 
     stop() {
