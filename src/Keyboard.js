@@ -3,11 +3,7 @@ class Keyboard extends Device {
         super();
     }
 
-    enable() {
-        super();
-    }
-
-    disable() {
-        super();
+    update(delta) {
+        // TODO
     }
 }

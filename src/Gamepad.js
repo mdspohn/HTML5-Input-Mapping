@@ -5,13 +5,14 @@ class Gamepad extends Device {
 
     use(config) {
         this.index = config.index;
+        this.buttons = config.buttons;
     }
 
-    enable() {
-        super();
+    update(delta) {
+        // TODO
     }
 
-    disable() {
-        super();
+    hasActivity() {
+        return typeof this.buttons === 'Array' && this.buttons.some(button => button.pressed || button.value === 1);
     }
 }
