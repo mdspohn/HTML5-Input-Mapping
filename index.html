@@ -40,12 +40,11 @@
   <!---------------------------------->
 
   <script type="text/javascript">
-    const Events = new EventManager(),
-          Input  = new InputManager(),
+    const Input  = new InputManager(),
           Engine = new EngineLoop();
 
-    window.addEventListener('device-connected', (e) => console.log('Connected', e));
-    window.addEventListener('device-disconnected', (e) => console.log('Disconnected', e));
+    Input.listen('device-connected', (e) => console.log('Connected', e));
+    Input.listen('device-disconnected', (e) => console.log('Disconnected', e));
 
     Engine.start();
   </script>

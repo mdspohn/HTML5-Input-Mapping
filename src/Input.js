@@ -7,6 +7,9 @@ class InputManager {
         
         InputManager.instance = this;
 
+        // Input Events
+        this.listeners = new Object();
+
         // Device Connection Options
         this.maxDevices = 2;
         this.ignoreInput = false;
@@ -53,6 +56,42 @@ class InputManager {
         });
     }
 
+    // ----------------
+    // Input Events
+    // --------------------
+    
+    addEventListener(name, callback, persistent = false) {
+        this.listeners[name] ??= new Object();
+        
+        const id = Math.random().toString(36).substr(2, 9);
+        if (this.listeners[name].hasOwnProperty(id))
+            return this.addEventListener(name, callback, persistent);
+
+        this.listeners[name][id] = { callback, persistent };
+        return id;
+    }
+
+    removeEventListener(name, id) {
+        if (this.listeners[name]?.[id] !== undefined)
+            delete this.listeners[name][id];
+    }
+
+    dispatchEvent(name, detail) {
+        if (this.listeners[name] === undefined)
+            return;
+
+        for (let [id, listener] of Object.entries(this.listeners[name])) {
+            listener.callback(id, detail);
+
+            if (!listener.persistent)
+                return this.removeEventListener(name, id);
+        }
+    }
+
+    // --------------
+    // Device Detection and Connections
+    // --------------------------
+
     isConnected(device) {
         // determine if this device should be listened to
         if (this.ignoreInput)
@@ -75,12 +114,12 @@ class InputManager {
 
     connect(id, device) {
         this.slots[id] = device;
-        Events.dispatch('device-connected', { id, device });
+        this.dispatchEvent('device-connected', { id, device });
     }
 
     disconnect(id) {
         this.slots[id] = null;
-        Events.dispatch('device-disconnected', { id });
+        this.dispatchEvent('device-disconnected', { id });
     }
 
     update(delta) {
