@@ -14,12 +14,12 @@ class EngineLoop {
 
     // called based on engine step (UPS)
     update(step) {
-        Input.update(step);
+        
     }
 
     // called based on monitor refresh rate (FPS)
     render(delta) {
-        // TODO
+        Input.update(delta);
     }
 
     start() {

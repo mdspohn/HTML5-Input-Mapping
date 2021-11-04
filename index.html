@@ -28,10 +28,8 @@
   <!-- Engine Classes ---------------->
   <!---------------------------------->
 
-  <script type="text/javascript" src="src/Events.js"></script>
-  <script type="text/javascript" src="src/Device.js"></script>
-  <script type="text/javascript" src="src/Gamepad.js"></script>
   <script type="text/javascript" src="src/Keyboard.js"></script>
+  <script type="text/javascript" src="src/Gamepads.js"></script>
   <script type="text/javascript" src="src/Input.js"></script>
   <script type="text/javascript" src="src/Engine.js"></script>
 
@@ -42,9 +40,6 @@
   <script type="text/javascript">
     const Input  = new InputManager(),
           Engine = new EngineLoop();
-
-    Input.listen('device-connected', (e) => console.log('Connected', e));
-    Input.listen('device-disconnected', (e) => console.log('Disconnected', e));
 
     Engine.start();
   </script>
