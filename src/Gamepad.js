@@ -30,12 +30,17 @@ class Gamepad {
     };
     
     constructor() {
-        this.id        = null;
+        // navigator gamepad details
+        this.nId       = null;
+        this.nIndex    = null;
         this.mapping   = null;
         this.axes      = null;
         this.buttons   = null;
         this.timestamp = null;
-        this.status    = Gamepad.DISCONNECTED;
+
+        // slot connection status
+        this.status = Gamepad.DISCONNECTED;
+        this.cIndex = null;
     }
 
     enable() {
@@ -50,11 +55,11 @@ class Gamepad {
     isDisconnected() { return this.status === Gamepad.DISCONNECTED; }
 
     initialize(ngp) {
-        this.nid       = ngp.id;
-        this.nindex    = ngp.index;
+        this.nId       = ngp.id;
+        this.nIndex    = ngp.index;
         this.mapping   = ngp.mapping;
         this.buttons   = Array.from(new Array(ngp.buttons.length), x => new Object({ value: 0, intensity: 0, ms: 0 }));
-        this.axes      = Array.from(new Array(ngp.axes.length),    x => new Object({ value: 0, intensity: 0, ms: 0 }));
+        this.axes      = Array.from(new Array(ngp.axes.length), x => new Object({ value: 0, intensity: 0, ms: 0 }));
         this.timestamp = ngp.timestamp;
         this.status    = Gamepad.DETECTED;
     }
@@ -89,17 +94,16 @@ class Gamepad {
         };
 
         if (intensity > 0) {
-            if (this.buttons[i].intensity === 0) {
-                this.buttons[i].intensity = intensity;
-                data.ms = this.buttons[i].ms = 0;
-                InputManager.dispatch('button-pressed', data);
-            } else {
-                InputManager.dispatch('button-held', data);
-            }
-        } else {
-            this.buttons[i].intensity = 0;
-            InputManager.dispatch('button-released', data);
+            if (this.buttons[i].intensity !== 0)
+                return InputManager.dispatch('button-held', data);
+
+            this.buttons[i].intensity = intensity;
+            this.buttons[i].ms = data.ms = 0;
+            return InputManager.dispatch('button-pressed', data);
         }
+
+        this.buttons[i].intensity = data.intensity = 0;
+        return InputManager.dispatch('button-released', data);
     }
 
     update(ngp, delta) {
