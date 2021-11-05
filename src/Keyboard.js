@@ -1,3 +1,3 @@
-class KeyboardController {
+class Keyboard {
     
 }

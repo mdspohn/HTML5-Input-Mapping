@@ -29,7 +29,7 @@
   <!---------------------------------->
 
   <script type="text/javascript" src="src/Keyboard.js"></script>
-  <script type="text/javascript" src="src/Gamepads.js"></script>
+  <script type="text/javascript" src="src/Gamepad.js"></script>
   <script type="text/javascript" src="src/Input.js"></script>
   <script type="text/javascript" src="src/Engine.js"></script>
 
@@ -42,5 +42,9 @@
           Engine = new EngineLoop();
 
     Engine.start();
+
+    window.addEventListener('gamepad-enabled', e => {
+      const gamepad = e.detail.gamepad;
+    });
   </script>
 </html>
