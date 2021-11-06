@@ -13,4 +13,10 @@ class Keyboard {
         document.addEventListener('keydown', (e) => e);
         document.addEventListener('keyup',   (e) => e);
     }
+
+    getChanges(delta) {
+        const changes = new Array();
+        // TODO
+        return changes;
+    }
 }

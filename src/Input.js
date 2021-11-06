@@ -1,9 +1,8 @@
 class InputManager {
     static instance = null;
 
-    static dispatch(id, detail) {
-        const event = new CustomEvent(id, { detail });
-        window.dispatchEvent(event);
+    static dispatch(id, data) {
+        window.dispatchEvent(new CustomEvent(id, { detail: data }));
     }
     
     constructor() {
@@ -12,66 +11,91 @@ class InputManager {
         
         InputManager.instance = this;
 
-        // differentiate between n simultaneous devices
-        this.currentConnections = 0;
-        this.maxConnections = 1;
-        // automatically swap first connection to more recently active device not in "this.connection"
-        this.autoSwapFirstConnection = true;
+        // Connected Devices
+        this.connections = new Object();
+        this.connections.max = 1;
+        this.connections.current = 0;
+        this.connections.slots = new Array(4).fill(null);
 
-        // Connected Players/Devices
-        this.gamepads = Array.from(new Array(4), x => new Gamepad());
+        // Recognized Devices
         this.keyboard = new Keyboard();
-        this.connections = new Array(4).fill(null);
-        
-        // Gamepad Events
-        window.addEventListener('gamepadconnected',    (e) => this.gamepads[e.gamepad.index].initialize(e.gamepad));
-        window.addEventListener('gamepaddisconnected', (e) => this.gamepads[e.gamepad.index].disconnect());
+        this.gamepads = new Object();
+        this.gamepads[0] = null;
+        this.gamepads[1] = null;
+        this.gamepads[2] = null;
+        this.gamepads[3] = null;
 
-        window.addEventListener('unconnected-activity', e => {
-
+        window.addEventListener('device-connection-request', (event) => {
+            // TODO
         });
 
-        // Input Events
-        window.addEventListener('button-pressed', (e) => {
-            console.log(`Button (#${e.detail.alias}) pressed.`);
+        window.addEventListener('device-disconnected', (event) => {
+            // TODO
         });
+    }
 
-        window.addEventListener('button-held', (e) => {
-            if (Math.floor(e.detail.ms / 1000) > Math.floor((e.detail.ms - e.detail.delta) / 1000))
-                console.warn(`Held for ${Math.floor(e.detail.ms / 1000)} second(s)!`);
-        });
+    updateKeyboard(delta) {
+        const changes = this.keyboard.getChanges(delta);
+        changes.forEach(action => this.events.dispatch(action.id, action.data));
+    }
 
-        window.addEventListener('button-released', (e) => {
-            console.error(`Button (#${e.detail.alias}) released...`);
-        });
+    updateGamepad(state, i, delta) {
+        const changes = this.gamepads[i].getChanges(state, delta);
+        changes.forEach(action => this.events.dispatch(action.id, action.data));
+    }
 
-        window.addEventListener('gamepad-enabled', (e) => {
-            console.log(e.detail.gamepad.nid, e.detail.gamepad);
-        });
+    recognizeGamepad(state, i, delta) {
+        this.gamepads[i] = new Gamepad(state);
+    }
+
+    disconnectGamepad(state, i, delta) {
+        const index = this.connections.slots.findIndex(device => device === this.gamepads[i]);
+        if (index !== -1) {
+            this.connections.slots[index] = null;
+            InputManager.dispatch('device-disconnected', { device: this.gamepads[i], index });
+        }
+        this.gamepads[i] = null;
     }
 
     update(delta) {
-        if (this.currentConnections < this.maxConnections || this.autoSwapFirstConnection) {
-            const NGPs = navigator.getGamepads(),
-                  connectedGamepads = this.connections.filter(device => device !== null && typeof device === 'Gamepad');
+        this.updateKeyboard(delta);
 
-            const idleNGPs = NGPs.filter((NGP, i) => !connectedGamepads.some(gamepad => gamepad.NGPindex === i)),
-                  activeNGPs = idleNGPs.filter(NGP => NGP.buttons.some(button => button.value > Gamepad.BUTTON_ACTIVE_MIN));
-
-
-            if (activeNGPs.length > 0) {
-                activeNGPs.sort((a, b) => a.timestamp - b.timestamp);
-
-                if (this.currentConnections < this.maxConnections) {
-                    activeNGPs.forEach(NGP => InputManager.dispatch('connection-request', NGP));
-                } else {
-                    this.connections[0] = new Gamepad(activeNGPs[0]);
-                }
+        navigator.getGamepads().forEach((state, i) => {
+            switch(state === null) {
+                case true:
+                    if (this.gamepads[i] !== null)
+                        return this.updateGamepad(state, i, delta);
+                    this.recognizeGamepad(state, i, delta);
+                    break;
+                default:
+                    if (this.gamepads[i] !== null)
+                        return this.disconnectGamepad(state, i, delta);
             }
-        }
-
-        this.connections.forEach(device => device.update(delta));
-        const ngp = navigator.getGamepads();
-        this.gamepads.forEach((gamepad, i) => gamepad.update(ngp[i], delta));
+        });
     }
 }
+
+// Input Events
+// ------------------
+// button-pressed
+// button-held
+// button-released
+// gamepad-enabled
+
+// Input Events
+// window.addEventListener('button-pressed', (e) => {
+//     console.log(`Button (#${e.detail.alias}) pressed.`);
+// });
+
+// window.addEventListener('button-held', (e) => {
+//     if (Math.floor(e.detail.ms / 1000) > Math.floor((e.detail.ms - e.detail.delta) / 1000))
+//         console.warn(`Held for ${Math.floor(e.detail.ms / 1000)} second(s)!`);
+// });
+
+// window.addEventListener('button-released', (e) => {
+//     console.error(`Button (#${e.detail.alias}) released...`);
+// });
+
+// window.addEventListener('gamepad-enabled', (e) => {
+//     console.log(e.detail.gamepad.nid, e.detail.gamepad);
+// });
