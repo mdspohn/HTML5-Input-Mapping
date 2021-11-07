@@ -39,39 +39,46 @@ class InputManager {
         changes.forEach(action => this.events.dispatch(action.id, action.data));
     }
 
-    updateGamepad(state, i, delta) {
-        const changes = this.gamepads[i].getChanges(state, delta);
+    updateGamepad(index, state, delta) {
+        const changes = this.gamepads[index].getChanges(state, delta);
         changes.forEach(action => this.events.dispatch(action.id, action.data));
     }
 
-    recognizeGamepad(state, i, delta) {
-        this.gamepads[i] = new Gamepad(state);
+    addGamepad(index, state) {
+        this.gamepads[index] = new Gamepad(state);
     }
 
-    disconnectGamepad(state, i, delta) {
-        const index = this.connections.slots.findIndex(device => device === this.gamepads[i]);
-        if (index !== -1) {
-            this.connections.slots[index] = null;
-            InputManager.dispatch('device-disconnected', { device: this.gamepads[i], index });
+    disconnectGamepad(index) {
+        const connIndex = this.connections.slots.findIndex(device => device === this.gamepads[index]);
+        if (connIndex !== -1) {
+            this.connections.slots[connIndex] = null;
+            InputManager.dispatch('device-disconnected', { device: this.gamepads[index], connIndex: connIndex });
         }
-        this.gamepads[i] = null;
+        this.gamepads[index] = null;
     }
 
     update(delta) {
         this.updateKeyboard(delta);
 
-        navigator.getGamepads().forEach((state, i) => {
-            switch(state === null) {
-                case true:
-                    if (this.gamepads[i] !== null)
-                        return this.updateGamepad(state, i, delta);
-                    this.recognizeGamepad(state, i, delta);
-                    break;
-                default:
-                    if (this.gamepads[i] !== null)
-                        return this.disconnectGamepad(state, i, delta);
+        const navgiatorGamepads = navigator.getGamepads();
+        for (let i = 0; i < navgiatorGamepads.length; i++) {
+            const state = navgiatorGamepads[i],
+                  isEnabled = this.gamepads[i] instanceof Gamepad;
+
+            if (state === null && !isEnabled)
+                continue;
+            
+            if (state !== null) {
+                if (isEnabled === true) {
+                    this.updateGamepad(i, state, delta);
+                } else {
+                    this.addGamepad(i, state);
+                }
+                continue;
             }
-        });
+
+            this.disconnectGamepad(i);
+        }
     }
 }
 
