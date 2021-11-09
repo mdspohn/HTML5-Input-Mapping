@@ -80,6 +80,7 @@ class Gamepad {
         const input     = new Object();
         input.device    = this;
         input.isGamepad = true;
+        input.slot      = this.slot;
         input.timestamp = Performance.now();
         input.buttons   = new Array();
         input.axes      = new Array();
@@ -99,7 +100,7 @@ class Gamepad {
         }
 
         if (!this.connected && input.some(action => action.state === 'press')) {
-            return InputManager.dispatch('device-connection-request', { device: this, input } );
+            return InputManager.dispatch('device-connection-request', input);
         }
 
         if (input.length !== 0)
