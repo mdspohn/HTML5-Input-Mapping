@@ -2,7 +2,6 @@ class InputManager {
     static instance = null;
 
     static dispatch(id, data) {
-        console.log(id)
         window.dispatchEvent(new CustomEvent(id, { detail: data }));
     }
     

@@ -24,7 +24,6 @@ class Slot {
 
         this.canvas.width = this.canvas.style.width.slice(0, -2);
         this.canvas.height = this.canvas.style.height.slice(0, -2);
-        console.log(this.canvas.width, this.canvas.height, this.canvas.style.width, this.canvas.style.height)
     }
 
     enable(device, image) {

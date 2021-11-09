@@ -13,7 +13,12 @@ class Keyboard {
 
         // Mouse Events
         document.addEventListener('mousemove',   (e) => e);
-        document.addEventListener('mouseout',    (e) => e);
+        document.addEventListener('mouseout',    (e) => {
+            Object.values(this.keys).forEach((key) => {
+                key.value = 0;
+                key.intensity = 0;
+            });
+        });
         document.addEventListener('click',       (e) => e);
         document.addEventListener('mousedown',   (e) => e);
         document.addEventListener('mouseup',     (e) => e);
@@ -21,8 +26,12 @@ class Keyboard {
         document.addEventListener('wheel',       (e) => e, { passive: true });
 
         // Keyboard Events
-        document.addEventListener('keydown', (e) => this.keys[e.key] = { value: 1, intensity: 1, ms: 0 });
+        document.addEventListener('keydown', (e) => {
+            this.keys[e.key] ??= { value: 1, intensity: 1, ms: 0 };
+        });
         document.addEventListener('keyup',   (e) => {
+            if (!this.keys[e.key])
+                return;
             this.keys[e.key].value = 0;
             this.keys[e.key].intensity = 0;
         });
