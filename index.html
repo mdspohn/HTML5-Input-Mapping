@@ -9,17 +9,38 @@
   <body>
 
     <!-------------------------------->
-    <!-- Canvas ---------------------->
-    <!-------------------------------->
-
-    <canvas id="canvas" width="480" height="270"></canvas>
-
-    <!-------------------------------->
     <!-- Interface ------------------->
     <!-------------------------------->
 
     <section id="interface">
-
+      <section id="player-0" class="device">
+        <canvas></canvas>
+        <section class="info">
+          <p>Press something...</p>
+          <p></p>
+        </section>
+      </section>
+      <section id="player-1" class="device">
+        <canvas></canvas>
+        <section class="info">
+          <p>Press any key or button...</p>
+          <p></p>
+        </section>
+      </section>
+      <section id="player-2" class="device">
+        <canvas></canvas>
+        <section class="info">
+          <p>Press any key or button...</p>
+          <p></p>
+        </section>
+      </section>
+      <section id="player-3" class="device">
+        <canvas></canvas>
+        <section class="info">
+          <p>Press any key or button...</p>
+          <p></p>
+        </section>
+      </section>
     </section>
     
   </body>
@@ -28,19 +49,18 @@
   <!-- Engine Classes ---------------->
   <!---------------------------------->
 
-  <script type="text/javascript" src="src/Keyboard.js"></script>
-  <script type="text/javascript" src="src/Gamepad.js"></script>
-  <script type="text/javascript" src="src/Input.js"></script>
-  <script type="text/javascript" src="src/Engine.js"></script>
+  <script type="text/javascript" src="./DemoController.js"></script>
+  <script type="text/javascript" src="./src/Keyboard.js"></script>
+  <script type="text/javascript" src="./src/Gamepad.js"></script>
+  <script type="text/javascript" src="./src/Input.js"></script>
+  <script type="text/javascript" src="./src/Engine.js"></script>
 
   <!---------------------------------->
   <!-- Initialization ---------------->
   <!---------------------------------->
 
   <script type="text/javascript">
-    const Input  = new InputManager(),
-          Engine = new EngineLoop();
-
-    Engine.start();
+    const Demo = new DemoController();
+    Demo.load().then(() => Demo.start());
   </script>
 </html>

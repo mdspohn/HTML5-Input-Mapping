@@ -2,6 +2,7 @@ class InputManager {
     static instance = null;
 
     static dispatch(id, data) {
+        console.log(id)
         window.dispatchEvent(new CustomEvent(id, { detail: data }));
     }
     
@@ -82,7 +83,7 @@ class InputManager {
             InputManager.dispatch('device-detected', this.gamepads[i]);
         }
 
-        this.gamepads[i].update(state, delta, this.combinedInput);
+        this.gamepads[i].update(state, delta);
     }
 
     onGamepadMissing(i) {

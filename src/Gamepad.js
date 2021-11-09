@@ -27,48 +27,62 @@ class Gamepad {
         if (state === null)
             return false;
 
-        return state.timestamp > this.timestamp || state.buttons.some(button => button.value > Gamepad.BUTTON_ACTIVE_MIN);
+        if (state.timestamp > this.timestamp)
+            return true;
+
+        if (state.buttons.some(button => button.value > Gamepad.BUTTON_ACTIVE_MIN))
+            return true;
+
+        if (state.axes.some(axis => Math.abs(axis) > Gamepad.AXIS_ACTIVE_MIN))
+            return true;
     }
 
     updateAxis(i, axis, delta) {
         if (Gamepad.AXIS_ACTIVE_MIN > Math.abs(axis) && this.axes[i].intensity === 0)
-            return false;
+            return null;
+
+        const range = Gamepad.AXIS_ACTIVE_MAX - Gamepad.AXIS_ACTIVE_MIN,
+              intensity = Math.sign(axis) * Math.min(1, Math.max(0, Math.abs(axis) - Gamepad.AXIS_ACTIVE_MIN) / range);
+
+        const action     = new Object();
+        action.value     = this.axes[i].value = axis;
+        action.intensity = this.axes[i].intensity = intensity;
+        action.ms        = this.axes[i].ms += delta;
+
+        if (Math.abs(intensity) > 0 && this.axes[i].intensity === 0)
+            this.axes[i].ms = action.ms = 0;
+
+        return action;
     }
 
     updateButton(i, button, delta) {
         if (Gamepad.BUTTON_ACTIVE_MIN > button.value && this.buttons[i].intensity === 0)
-            return false;
+            return null;
         
         const range = Gamepad.BUTTON_ACTIVE_MAX - Gamepad.BUTTON_ACTIVE_MIN,
               intensity = Math.min(1, Math.max(0, button.value - Gamepad.BUTTON_ACTIVE_MIN) / range);
 
-        const data     = new Object();
-        data.button    = i;
-        data.gamepad   = this;
-        data.value     = this.buttons[i].value = button.value;
-        data.intensity = intensity;
-        data.delta     = delta;
-        data.ms        = this.buttons[i].ms += delta;
+        const action     = new Object();
+        action.value     = this.buttons[i].value = button.value;
+        action.intensity = intensity;
+        action.ms        = this.buttons[i].ms += delta;
 
         if (intensity > 0) {
             if (this.buttons[i].intensity !== 0) {
-                if (Gamepad.HOLD_MS > data.ms)
-                    return false;
-                data.state = 'hold';
-                InputManager.dispatch('button-held', data);
+                if (Gamepad.HOLD_MS > action.ms)
+                    return null;
+                action.state = 'hold';
             } else {
                 this.buttons[i].intensity = intensity;
-                this.buttons[i].ms = data.ms = 0;
-                data.state = 'press';
-                InputManager.dispatch('button-pressed', data);
+                this.buttons[i].ms = action.ms = 0;
+                action.state = 'press';
             }
         } else {
-            this.buttons[i].intensity = data.intensity = 0;
-            data.state = 'release';
-            InputManager.dispatch('button-released', data);
+            this.buttons[i].intensity = action.intensity = 0;
+            action.state = 'release';
         }
 
-        return data;
+        return action;
     }
 
     update(state, delta) {
@@ -79,31 +93,37 @@ class Gamepad {
         
         const input     = new Object();
         input.device    = this;
-        input.isGamepad = true;
-        input.slot      = this.slot;
-        input.timestamp = Performance.now();
-        input.buttons   = new Array();
-        input.axes      = new Array();
+        input.delta     = delta;
+        input.buttons   = new Object();
+        input.axes      = new Object();
+
+        let canRequestConnection = false,
+            active = false;
 
         for (let i = 0; i < state.buttons.length; i++) {
             const action = this.updateButton(i, state.buttons[i], delta);
-            if (!action)
+            if (action === null)
                 continue;
-            input.buttons.push(action);
+                
+            input.buttons[i] = action;
+            active = true;
+            if (action.state === 'press')
+                canRequestConnection = true;
         }
 
         for (let i = 0; i < state.axes.length; i++) {
             const action = this.updateAxis(i, state.axes[i], delta);
-            if (!action)
+            if (action === null)
                 continue;
-            input.axes.push(action);
+
+            input.axes[i] = action;
+            active = true;
         }
 
-        if (!this.connected && input.some(action => action.state === 'press')) {
-            return InputManager.dispatch('device-connection-request', input);
-        }
-
-        if (input.length !== 0)
+        if (!this.connected && canRequestConnection) {
+            InputManager.dispatch('device-connection-request', input);
+        } else if (this.connected && active) {
             InputManager.dispatch('device-input', input);
+        }
     }
 }

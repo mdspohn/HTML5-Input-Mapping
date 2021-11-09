@@ -19,7 +19,7 @@ class EngineLoop {
 
     // called based on monitor refresh rate (FPS)
     render(delta) {
-        Input.update(delta);
+        Demo.update(delta);
     }
 
     start() {
