@@ -34,17 +34,16 @@ class Gamepad {
         this.timestamp = state.timestamp;
     }
 
+    update(state, delta) {
+        // TODO
+        return true || false;
+    }
+
     hasChanges(state) {
         if (state === null)
             return false;
 
         return state.timestamp > this.timestamp || state.buttons.some(button => button.value > Gamepad.BUTTON_ACTIVE_MIN);
-    }
-
-    getChanges(state, delta) {
-        const changes = new Array();
-        // TODO
-        return changes;
     }
 
     updateAxis(i, axis, delta) {

@@ -13,72 +13,95 @@ class InputManager {
 
         // Connected Devices
         this.connections = new Object();
-        this.connections.max = 1;
-        this.connections.current = 0;
         this.connections.slots = new Array(4).fill(null);
+        this.autoConnect = false;
 
-        // Recognized Devices
-        this.keyboard = new Keyboard();
+        // Recognized Gamepads
         this.gamepads = new Object();
         this.gamepads[0] = null;
         this.gamepads[1] = null;
         this.gamepads[2] = null;
         this.gamepads[3] = null;
 
+        // Keyboard & Mouse Management
+        this.keyboard = new Keyboard();
+
         window.addEventListener('device-connection-request', (event) => {
-            // TODO
+            if (this.autoConnect !== true)
+                return;
+
+            this.connect(0, event.detail.device);
         });
-
-        window.addEventListener('device-disconnected', (event) => {
-            // TODO
-        });
     }
 
-    updateKeyboard(delta) {
-        const changes = this.keyboard.getChanges(delta);
-        changes.forEach(action => this.events.dispatch(action.id, action.data));
+    autoConnectMode(enabled = true) {
+        // AUTO CONNECT MODE: Connect and broadcast all device activity
+        // - This is only useful for single-user applications, as broadcasts will not be include a unique ID
+
+        this.autoConnect = enabled;
     }
 
-    updateGamepad(index, state, delta) {
-        const changes = this.gamepads[index].getChanges(state, delta);
-        changes.forEach(action => this.events.dispatch(action.id, action.data));
-    }
-
-    addGamepad(index, state) {
-        this.gamepads[index] = new Gamepad(state);
-    }
-
-    disconnectGamepad(index) {
-        const connIndex = this.connections.slots.findIndex(device => device === this.gamepads[index]);
-        if (connIndex !== -1) {
-            this.connections.slots[connIndex] = null;
-            InputManager.dispatch('device-disconnected', { device: this.gamepads[index], connIndex: connIndex });
+    connect(slot, device) {
+        if (device === null)
+            return;
+        
+        const previous = this.connections[slot];
+        if (previous !== null) {
+            previous.connected = false;
+            InputManager.dispatch('device-swapped', { slot, from: previous, to: device });
         }
-        this.gamepads[index] = null;
+
+        device.connected = true;
+        this.connections[slot] = device;
+        InputManager.dispatch('device-connected', { slot, device });
+    }
+
+    disconnect(slot) {
+        if (this.connections[slot] === null)
+            return;
+        
+        const device = this.connections[slot];
+        device.connected = false;
+        this.connections[slot] = null;
+        InputManager.dispatch('device-disconnected', { slot, device });
+    }
+
+    #onGamepadFound(i, state, delta) {
+        if (this.gamepads[i] === null) {
+            this.gamepads[i] = new Gamepad(state);
+            InputManager.dispatch('device-detected', this.gamepads[i]);
+        }
+
+        this.gamepads[i].update(state, delta);
+    }
+
+    #onGamepadMissing(i) {
+        if (this.gamepads[i] instanceof Gamepad) {
+            const index = this.connections.findIndex(device => device === this.gamepads[i]),
+                  isConnected = Boolean(index !== -1),
+                  gamepad = this.gamepads[i];
+            
+            if (isConnected)
+                this.disconnect(index);
+            
+            this.gamepads[i] = null;
+            InputManager.dispatch('device-removed', gamepad);
+        }
     }
 
     update(delta) {
-        this.updateKeyboard(delta);
-
-        const navgiatorGamepads = navigator.getGamepads();
-        for (let i = 0; i < navgiatorGamepads.length; i++) {
-            const state = navgiatorGamepads[i],
-                  isEnabled = this.gamepads[i] instanceof Gamepad;
-
-            if (state === null && !isEnabled)
-                continue;
-            
-            if (state !== null) {
-                if (isEnabled === true) {
-                    this.updateGamepad(i, state, delta);
-                } else {
-                    this.addGamepad(i, state);
-                }
+        // check for device connection changes
+        const devices = navigator.getGamepads() || new Array();
+        for (let i = 0; i < devices.length; i++) {
+            if (devices[i] !== null) {
+                this.#onGamepadFound(i, devices[i], delta);
                 continue;
             }
-
-            this.disconnectGamepad(i);
+            this.#onGamepadMissing(i);
         }
+
+        // update keyboard & send events for connected devices
+        this.keyboard.update(delta);
     }
 }
 
