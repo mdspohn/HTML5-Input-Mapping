@@ -33,6 +33,16 @@ class Slot {
         this.section.classList.toggle('enabled', true);
         this.deviceName.innerHTML = device.id;
     }
+
+    disable() {
+        this.device = null;
+        this.section.classList.toggle('enabled', false);
+        this.section.classList.toggle('active', false);
+        this.introMs = 0;
+        this.balls = new Array();
+        this.deviceName.innerHTML = '';
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
     
     createBall() {
         const ball = new Object();
@@ -109,8 +119,11 @@ class DemoController {
 
         window.addEventListener('device-connected', event => {
             const device = event.detail.device;
-            console.log(device, device instanceof Gamepad)
             this.slots[event.detail.slot].enable(device, ((device instanceof Gamepad) ? this.images.gamepad : this.images.keyboard));
+        });
+
+        window.addEventListener('device-disconnected', event => {
+            this.slots[event.detail.slot].disable();
         });
 
         window.addEventListener('device-input', event => {
