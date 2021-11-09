@@ -12,9 +12,10 @@ class InputManager {
         InputManager.instance = this;
 
         // Connected Devices
-        this.connections = new Object();
-        this.connections.slots = new Array(4).fill(null);
-        this.autoConnect = false;
+        this.connections = new Array(4).fill(null);
+
+        // QoL Settings
+        this.autoConnect = true;
 
         // Recognized Gamepads
         this.gamepads = new Object();
@@ -34,26 +35,34 @@ class InputManager {
         });
     }
 
-    autoConnectMode(enabled = true) {
-        // AUTO CONNECT MODE: Connect and broadcast all device activity
-        // - This is only useful for single-user applications, as broadcasts will not be include a unique ID
+    /* ---------------
+    * AutoConnect Mode
+    * ----------------------------
+    * All unconnected keyboard/gamepad activity will immediately connect the device to the first slot
+    * ------------------ */
 
+    autoConnectMode(enabled = true) {
         this.autoConnect = enabled;
     }
 
     connect(slot, device) {
-        if (device === null)
+        if (device === null || device.requestingConnection)
             return;
+
+        device.requestingConnection = true;
         
-        const previous = this.connections[slot];
-        if (previous !== null) {
-            previous.connected = false;
-            InputManager.dispatch('device-swapped', { slot, from: previous, to: device });
+        if (this.connections[slot] !== null) {
+            this.connections[slot].connected = false;
+            this.connections[slot].slot = null;
+            InputManager.dispatch('device-swapped', { slot, from: this.connections[slot], to: device });
         }
 
         device.connected = true;
+        device.slot = slot;
         this.connections[slot] = device;
         InputManager.dispatch('device-connected', { slot, device });
+
+        device.requestingConnection = false;
     }
 
     disconnect(slot) {
@@ -62,27 +71,26 @@ class InputManager {
         
         const device = this.connections[slot];
         device.connected = false;
+        device.slot = null;
         this.connections[slot] = null;
         InputManager.dispatch('device-disconnected', { slot, device });
     }
 
-    #onGamepadFound(i, state, delta) {
+    onGamepadFound(i, state, delta) {
         if (this.gamepads[i] === null) {
             this.gamepads[i] = new Gamepad(state);
             InputManager.dispatch('device-detected', this.gamepads[i]);
         }
 
-        this.gamepads[i].update(state, delta);
+        this.gamepads[i].update(state, delta, this.combinedInput);
     }
 
-    #onGamepadMissing(i) {
+    onGamepadMissing(i) {
         if (this.gamepads[i] instanceof Gamepad) {
-            const index = this.connections.findIndex(device => device === this.gamepads[i]),
-                  isConnected = Boolean(index !== -1),
-                  gamepad = this.gamepads[i];
+            const gamepad = this.gamepads[i];
             
-            if (isConnected)
-                this.disconnect(index);
+            if (gamepad.connected)
+                this.disconnect(gamepad.slot);
             
             this.gamepads[i] = null;
             InputManager.dispatch('device-removed', gamepad);
@@ -94,38 +102,13 @@ class InputManager {
         const devices = navigator.getGamepads() || new Array();
         for (let i = 0; i < devices.length; i++) {
             if (devices[i] !== null) {
-                this.#onGamepadFound(i, devices[i], delta);
+                this.onGamepadFound(i, devices[i], delta);
                 continue;
             }
-            this.#onGamepadMissing(i);
+            this.onGamepadMissing(i);
         }
 
         // update keyboard & send events for connected devices
         this.keyboard.update(delta);
     }
 }
-
-// Input Events
-// ------------------
-// button-pressed
-// button-held
-// button-released
-// gamepad-enabled
-
-// Input Events
-// window.addEventListener('button-pressed', (e) => {
-//     console.log(`Button (#${e.detail.alias}) pressed.`);
-// });
-
-// window.addEventListener('button-held', (e) => {
-//     if (Math.floor(e.detail.ms / 1000) > Math.floor((e.detail.ms - e.detail.delta) / 1000))
-//         console.warn(`Held for ${Math.floor(e.detail.ms / 1000)} second(s)!`);
-// });
-
-// window.addEventListener('button-released', (e) => {
-//     console.error(`Button (#${e.detail.alias}) released...`);
-// });
-
-// window.addEventListener('gamepad-enabled', (e) => {
-//     console.log(e.detail.gamepad.nid, e.detail.gamepad);
-// });
