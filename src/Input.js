@@ -1,8 +1,9 @@
 class InputManager {
     static instance = null;
 
-    static dispatch(id, data) {
-        window.dispatchEvent(new CustomEvent(id, { detail: data }));
+    static dispatch(id, detail, cancelable = false) {
+        const e = new CustomEvent(id, { detail, cancelable });
+        window.dispatchEvent(e);
     }
     
     constructor() {
@@ -11,11 +12,8 @@ class InputManager {
         
         InputManager.instance = this;
 
-        // Connected Devices
-        this.connections = new Array(4).fill(null);
-
-        // QoL Settings
-        this.autoConnect = true;
+        // Connected Device
+        this.connection = null;
 
         // Recognized Gamepads
         this.gamepads = new Object();
@@ -27,59 +25,47 @@ class InputManager {
         // Keyboard & Mouse Management
         this.keyboard = new Keyboard();
 
-        window.addEventListener('device-connection-request', (event) => {
-            if (this.autoConnect !== true)
-                return;
+        if (!window.navigator || !window.navigator.getGamepads)
+            console.warn('Gamepad API not supported by current browser.');
 
-            this.connect(0, event.detail.device);
-        });
+        window.addEventListener('device-connection-request', (e) => {
+            this.connect(e.detail.device);
+
+            e.stopImmediatePropagation();
+        }, true);
     }
 
-    /* ---------------
-    * AutoConnect Mode
-    * ----------------------------
-    * All unconnected keyboard/gamepad activity will immediately connect the device to the first slot
-    * ------------------ */
-
-    autoConnectMode(enabled = true) {
-        this.autoConnect = enabled;
-    }
-
-    connect(slot, device) {
+    connect(device) {
         if (device === null || device.requestingConnection)
             return;
 
         device.requestingConnection = true;
-        
-        if (this.connections[slot] !== null) {
-            this.connections[slot].connected = false;
-            this.connections[slot].slot = null;
-            InputManager.dispatch('device-swapped', { slot, from: this.connections[slot], to: device });
+
+        if (this.connection !== null) {
+            this.connection.active = false;
+            InputManager.dispatch('device-connected', { previous: this.connection, device });
         }
 
-        device.connected = true;
-        device.slot = slot;
-        this.connections[slot] = device;
-        InputManager.dispatch('device-connected', { slot, device });
+        device.active = true;
+        this.connection = device;
+        InputManager.dispatch('device-connected', { device });
 
         device.requestingConnection = false;
     }
 
-    disconnect(slot) {
-        if (this.connections[slot] === null)
+    disconnect() {
+        if (this.connection === null)
             return;
         
-        const device = this.connections[slot];
-        device.connected = false;
-        device.slot = null;
-        this.connections[slot] = null;
-        InputManager.dispatch('device-disconnected', { slot, device });
+        InputManager.dispatch('device-disconnected', { device: this.connection });
+
+        this.connection = null;
     }
 
     onGamepadFound(i, state, delta) {
         if (this.gamepads[i] === null) {
             this.gamepads[i] = new Gamepad(state);
-            InputManager.dispatch('device-detected', this.gamepads[i]);
+            InputManager.dispatch('device-detected', { device: this.gamepads[i] });
         }
 
         this.gamepads[i].update(state, delta);
@@ -87,13 +73,12 @@ class InputManager {
 
     onGamepadMissing(i) {
         if (this.gamepads[i] instanceof Gamepad) {
-            const gamepad = this.gamepads[i];
+            if (this.gamepads[i].active)
+                this.disconnect();
             
-            if (gamepad.connected)
-                this.disconnect(gamepad.slot);
-            
+            InputManager.dispatch('device-removed', { device: this.gamepads[i] });
+
             this.gamepads[i] = null;
-            InputManager.dispatch('device-removed', gamepad);
         }
     }
 
@@ -108,7 +93,6 @@ class InputManager {
             this.onGamepadMissing(i);
         }
 
-        // update keyboard & send events for connected devices
         this.keyboard.update(delta);
     }
 }

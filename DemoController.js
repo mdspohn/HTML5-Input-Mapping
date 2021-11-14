@@ -118,28 +118,33 @@ class DemoController {
 
         window.addEventListener('device-connected', event => {
             const device = event.detail.device;
-            this.slots[event.detail.slot].enable(device, ((device instanceof Gamepad) ? this.images.gamepad : this.images.keyboard));
+            this.slots[0].enable(device, ((device instanceof Gamepad) ? this.images.gamepad : this.images.keyboard));
         });
 
         window.addEventListener('device-disconnected', event => {
-            this.slots[event.detail.slot].disable();
+            this.slots[0].disable();
         });
 
         window.addEventListener('device-input', event => {
             if (Object.values(event.detail.buttons).some(button => button.state === 'press')) {
-                this.slots[event.detail.device.slot].createBall();
+                this.slots[0].createBall();
             }
+        });
+        
+        window.addEventListener('device-connection-request', (event) => {
+            console.log('detected')
         });
     }
 
     load() {
-        const img1 = new Promise((resolve => this.images.keyboard.onload = resolve));
-        const img2 = new Promise((resolve => this.images.gamepad.onload = resolve));
+        const images = new Array();
+        images.push(new Promise((resolve => this.images.keyboard.onload = resolve)));
+        images.push(new Promise((resolve => this.images.gamepad.onload  = resolve)));
 
-        this.images.keyboard.src = './assets/svg/keyboard.svg';
-        this.images.gamepad.src = './assets/svg/gamepad.svg';
+        this.images.keyboard.src = './assets/img/keyboard.png';
+        this.images.gamepad.src = './assets/img/gamepad.png';
 
-        return Promise.all([img1, img2]);
+        return Promise.all(images);
     }
 
     start() {

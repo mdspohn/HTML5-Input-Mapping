@@ -18,8 +18,7 @@ class Gamepad {
         this.timestamp = state.timestamp;
 
         // Connection State
-        this.connected = false;
-        this.slot      = null;
+        this.active = false;
         this.requestingConnection = false;
     }
 
@@ -91,24 +90,22 @@ class Gamepad {
         
         this.timestamp = state.timestamp;
         
-        const input     = new Object();
-        input.device    = this;
-        input.delta     = delta;
-        input.buttons   = new Object();
-        input.axes      = new Object();
+        const data     = new Object();
+        data.device    = this;
+        data.delta     = delta;
+        data.buttons   = new Object();
+        data.axes      = new Object();
 
-        let canRequestConnection = false,
-            active = false;
+        let isRequestingConnection = false;
 
         for (let i = 0; i < state.buttons.length; i++) {
             const action = this.updateButton(i, state.buttons[i], delta);
             if (action === null)
                 continue;
-                
-            input.buttons[i] = action;
-            active = true;
+            
+            data.buttons[i] = action;
             if (action.state === 'press')
-                canRequestConnection = true;
+                isRequestingConnection = true;
         }
 
         for (let i = 0; i < state.axes.length; i++) {
@@ -116,14 +113,13 @@ class Gamepad {
             if (action === null)
                 continue;
 
-            input.axes[i] = action;
-            active = true;
+            data.axes[i] = action;
         }
 
-        if (!this.connected && canRequestConnection) {
-            InputManager.dispatch('device-connection-request', input);
-        } else if (this.connected && active) {
-            InputManager.dispatch('device-input', input);
+        if (!this.active && isRequestingConnection) {
+            InputManager.dispatch('device-connection-request', data, true);
+        } else if (this.active) {
+            InputManager.dispatch('device-input', data);
         }
     }
 }
