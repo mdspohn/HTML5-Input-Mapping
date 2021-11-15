@@ -1,7 +1,4 @@
 class Keyboard {
-    // Minimum amount of time passed (milliseconds) before button-held events are registered
-    static HOLD_MS = 500;
-
     constructor() {
         // Device State
         this.id        = 'Keyboard';
@@ -13,55 +10,52 @@ class Keyboard {
         this.active = false;
         this.requestingConnection = false;
 
-        // Mouse Events
-        document.addEventListener('mousemove',   (e) => e);
-        document.addEventListener('mouseout',    (e) => {
-            Object.values(this.keys).forEach((key) => {
-                key.value = 0;
-                key.intensity = 0;
-            });
-        });
-        document.addEventListener('click',       (e) => e);
-        document.addEventListener('mousedown',   (e) => e);
-        document.addEventListener('mouseup',     (e) => e);
-        document.addEventListener('contextmenu', (e) => e);
-        document.addEventListener('wheel',       (e) => e, { passive: true });
-
         // Keyboard Events
-        document.addEventListener('keydown', (e) => {
-            this.keys[e.key] ??= { value: 1, intensity: 1, ms: 0 };
-        });
-        document.addEventListener('keyup',   (e) => {
-            if (!this.keys[e.key])
-                return;
-            this.keys[e.key].value = 0;
-            this.keys[e.key].intensity = 0;
-        });
+        document.addEventListener('keydown', (e) => this.updateButton(e.key, true));
+        document.addEventListener('keyup', (e) => this.updateButton(e.key, false));
+
+        // prevent keys "sticking" when focus is lost on application
+        window.addEventListener('blur', () => Object.entries(this.keys).forEach((button) => this.updateButton(button[0], false)));
+
+        // dispatch detection event for consistency with gamepads
+        DeviceManager.dispatch('device-detected', { device: this });
+    }
+
+    updateButton(id, pressed) {
+        if (!this.keys.hasOwnProperty(id)) {
+            if (pressed) {
+                this.keys[id] ??= new Object();
+                this.keys[id].ms = 0;
+            } else return;
+        }
+
+        this.keys[id].value = this.keys[id].intensity = +pressed;
     }
 
     update(delta) {
+        const actions = Object.entries(this.keys);
+        if (actions.length === 0)
+            return;
+        
         const data     = new Object();
         data.device    = this;
         data.delta     = delta;
         data.buttons   = new Object();
         data.axes      = new Object();
 
-        let canRequestConnection = false,
-            active = false;
+        let isRequestingConnection = false;
         
-        Object.entries(this.keys).forEach(([code, state]) => {
+        actions.forEach( ([code, state]) => {
             const action = new Object();
             action.value     = state.value;
             action.intensity = state.value;
             action.ms        = state.ms += delta;
 
             if (action.value > 0) {
-                if ((action.ms - delta) !== 0) {
-                    if (Keyboard.HOLD_MS > action.ms)
-                        return null;
-                    action.state = 'hold';
-                } else {
+                if ((action.ms - delta) === 0) {
                     action.state = 'press';
+                } else if (action.ms >= DeviceManager.HOLD_DELAY) {
+                    action.state = 'hold';
                 }
             } else {
                 action.state = 'release';
@@ -69,15 +63,14 @@ class Keyboard {
             }
 
             data.buttons[code] = action;
-            active = true;
             if (action.state === 'press')
-                canRequestConnection = true;
+                isRequestingConnection = true;
         });
 
-        if (!this.active && canRequestConnection) {
-            InputManager.dispatch('device-connection-request', data, true);
-        } else if (this.active && active) {
-            InputManager.dispatch('device-input', data);
+        if (this.active) {
+            DeviceManager.dispatch('device-input', data);
+        } else if (isRequestingConnection) {
+            DeviceManager.dispatch('device-connection-request', data, true);
         }
     }
 }

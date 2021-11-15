@@ -1,13 +1,4 @@
 class Gamepad {
-    // Button/Axis intensity values are normalized within this range to account for drift
-    static BUTTON_ACTIVE_MIN = 0.25;
-    static BUTTON_ACTIVE_MAX = 0.75;
-    static AXIS_ACTIVE_MIN = 0.25;
-    static AXIS_ACTIVE_MAX = 0.75;
-
-    // Minimum amount of time passed (milliseconds) before button-held events are registered
-    static HOLD_MS = 500;
-    
     constructor(state) {
         // Gamepad State
         this.id        = state.id;
@@ -29,19 +20,19 @@ class Gamepad {
         if (state.timestamp > this.timestamp)
             return true;
 
-        if (state.buttons.some(button => button.value > Gamepad.BUTTON_ACTIVE_MIN))
+        if (state.buttons.some(button => button.value > DeviceManager.BUTTON_DRIFT))
             return true;
 
-        if (state.axes.some(axis => Math.abs(axis) > Gamepad.AXIS_ACTIVE_MIN))
+        if (state.axes.some(axis => Math.abs(axis) > DeviceManager.AXIS_DRIFT))
             return true;
     }
 
     updateAxis(i, axis, delta) {
-        if (Gamepad.AXIS_ACTIVE_MIN > Math.abs(axis) && this.axes[i].intensity === 0)
+        if (DeviceManager.AXIS_DRIFT > Math.abs(axis) && this.axes[i].intensity === 0)
             return null;
 
-        const range = Gamepad.AXIS_ACTIVE_MAX - Gamepad.AXIS_ACTIVE_MIN,
-              intensity = Math.sign(axis) * Math.min(1, Math.max(0, Math.abs(axis) - Gamepad.AXIS_ACTIVE_MIN) / range);
+        const range = (1 - DeviceManager.AXIS_DRIFT) - DeviceManager.AXIS_DRIFT,
+              intensity = Math.sign(axis) * Math.min(1, Math.max(0, Math.abs(axis) - DeviceManager.AXIS_DRIFT) / range);
 
         const action     = new Object();
         action.value     = this.axes[i].value = axis;
@@ -55,11 +46,11 @@ class Gamepad {
     }
 
     updateButton(i, button, delta) {
-        if (Gamepad.BUTTON_ACTIVE_MIN > button.value && this.buttons[i].intensity === 0)
+        if (DeviceManager.BUTTON_DRIFT > button.value && this.buttons[i].intensity === 0)
             return null;
         
-        const range = Gamepad.BUTTON_ACTIVE_MAX - Gamepad.BUTTON_ACTIVE_MIN,
-              intensity = Math.min(1, Math.max(0, button.value - Gamepad.BUTTON_ACTIVE_MIN) / range);
+        const range = (1 - DeviceManager.BUTTON_DRIFT) - DeviceManager.BUTTON_DRIFT,
+              intensity = Math.min(1, Math.max(0, button.value - DeviceManager.BUTTON_DRIFT) / range);
 
         const action     = new Object();
         action.value     = this.buttons[i].value = button.value;
@@ -68,7 +59,7 @@ class Gamepad {
 
         if (intensity > 0) {
             if (this.buttons[i].intensity !== 0) {
-                if (Gamepad.HOLD_MS > action.ms)
+                if (DeviceManager.HOLD_DELAY > action.ms)
                     return null;
                 action.state = 'hold';
             } else {
@@ -116,10 +107,10 @@ class Gamepad {
             data.axes[i] = action;
         }
 
-        if (!this.active && isRequestingConnection) {
-            InputManager.dispatch('device-connection-request', data, true);
-        } else if (this.active) {
-            InputManager.dispatch('device-input', data);
+        if (this.active) {
+            DeviceManager.dispatch('device-input', data);
+        } else if (isRequestingConnection) {
+            DeviceManager.dispatch('device-connection-request', data, true);
         }
     }
 }

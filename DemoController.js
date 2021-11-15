@@ -15,6 +15,15 @@ class Slot {
         this.introMs = 0;
         this.introDurationMs = 500;
         this.balls = new Array();
+        this.colors = [
+            '#26ccff',
+            '#a25afd',
+            '#ff5e7e',
+            '#88ff5a',
+            '#fcff42',
+            '#ffa62d',
+            '#ff36ff'
+          ];
     }
 
     onResize() {
@@ -50,7 +59,8 @@ class Slot {
         ball.size = Math.round(10 + Math.random() * 10);
         ball.duration = 1000;
         ball.ms = 0;
-        ball.color = Math.floor(Math.random() * 16777215).toString(16);
+        //ball.color = Math.floor(Math.random() * 16777215).toString(16);
+        ball.color = this.colors[Math.floor(Math.random() * this.colors.length)];
         this.balls.push(ball);
     }
 
@@ -87,8 +97,9 @@ class Slot {
                 this.ctx.save();
                 this.ctx.beginPath();
                 this.ctx.arc(ball.x, ball.y, ball.size, 0, Math.PI * 2);
-                this.ctx.stroke();
-                this.ctx.fillStyle = '#' + ball.color;
+                //this.ctx.stroke();
+                //this.ctx.fillStyle = '#' + ball.color;
+                this.ctx.fillStyle = ball.color;
                 this.ctx.fill();
                 this.ctx.restore();
                 ball.ms += delta;
@@ -101,8 +112,7 @@ class Slot {
 
 class DemoController {
     constructor() {
-        this.input = new InputManager();
-        this.engine = new EngineLoop();
+        this.input = new DeviceManager();
 
         this.slots = new Array();
         this.slots[0] = new Slot(0);
@@ -130,10 +140,11 @@ class DemoController {
                 this.slots[0].createBall();
             }
         });
-        
-        window.addEventListener('device-connection-request', (event) => {
-            console.log('detected')
-        });
+    }
+
+    update(delta) {
+        this.input.update(delta);
+        this.slots.forEach(slot => slot.update(delta));
     }
 
     load() {
@@ -148,11 +159,16 @@ class DemoController {
     }
 
     start() {
-        this.engine.start();
-    }
+        let now = performance.now(),
+            last;
 
-    update(delta) {
-        this.input.update(delta);
-        this.slots.forEach(slot => slot.update(delta));
+        const loop = (timestamp) => {
+            requestAnimationFrame(loop);
+            last = now;
+            now = timestamp;
+            this.update(now - last);
+        }
+
+        requestAnimationFrame(loop);
     }
 }

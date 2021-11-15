@@ -1,5 +1,15 @@
-class InputManager {
+class DeviceManager {
     static instance = null;
+
+    // account for drift/error on gamepad button presses
+    // [n = 0.25] would normalize (0.25 - 0.75) as (0.0 - 1.0)
+    static BUTTON_DRIFT = 0.25;
+
+    // account for drift/error on gamepad axis movement
+    static AXIS_DRIFT = 0.25;
+
+    // time passed, in milliseconds, before button-held actions are registed on device-input events
+    static HOLD_DELAY = 500;
 
     static dispatch(id, detail, cancelable = false) {
         const e = new CustomEvent(id, { detail, cancelable });
@@ -7,10 +17,10 @@ class InputManager {
     }
     
     constructor() {
-        if (InputManager.instance !== null)
-            return InputManager.instance;
+        if (DeviceManager.instance !== null)
+            return DeviceManager.instance;
         
-        InputManager.instance = this;
+        DeviceManager.instance = this;
 
         // Connected Device
         this.connection = null;
@@ -43,12 +53,12 @@ class InputManager {
 
         if (this.connection !== null) {
             this.connection.active = false;
-            InputManager.dispatch('device-connected', { previous: this.connection, device });
+            DeviceManager.dispatch('device-connected', { previous: this.connection, device });
         }
 
         device.active = true;
         this.connection = device;
-        InputManager.dispatch('device-connected', { device });
+        DeviceManager.dispatch('device-connected', { previous: null, device });
 
         device.requestingConnection = false;
     }
@@ -57,7 +67,7 @@ class InputManager {
         if (this.connection === null)
             return;
         
-        InputManager.dispatch('device-disconnected', { device: this.connection });
+        DeviceManager.dispatch('device-disconnected', { device: this.connection });
 
         this.connection = null;
     }
@@ -65,7 +75,7 @@ class InputManager {
     onGamepadFound(i, state, delta) {
         if (this.gamepads[i] === null) {
             this.gamepads[i] = new Gamepad(state);
-            InputManager.dispatch('device-detected', { device: this.gamepads[i] });
+            DeviceManager.dispatch('device-detected', { device: this.gamepads[i] });
         }
 
         this.gamepads[i].update(state, delta);
@@ -76,7 +86,7 @@ class InputManager {
             if (this.gamepads[i].active)
                 this.disconnect();
             
-            InputManager.dispatch('device-removed', { device: this.gamepads[i] });
+            DeviceManager.dispatch('device-removed', { device: this.gamepads[i] });
 
             this.gamepads[i] = null;
         }
