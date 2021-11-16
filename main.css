@@ -47,13 +47,12 @@ input, textarea ,select {
 
 /* ---------------------------------
 # General
+# Plug Color #284268
 ----------------------------------------------- */
 
 body {
-    height: 100vh;
-    width: 100vw;
     font-family: Montserrat, sans-serif;
-    overflow: hidden;
+    overflow-x: hidden;
     position: relative;
     word-spacing: -1px;
     font-size: 20px;
@@ -63,10 +62,143 @@ body {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    background-color: rgba(0,0,0,0.1);
 }
 
 #interface {
+    min-height: 100vh;
+    min-width: 100vw;
+    background-color: rgba(0,0,0,0.05);
+}
+
+#active-device {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#devices {
+    position: absolute;
+    height: calc(100% - 70px);
+    padding: 20px 50px 50px;
+    top: 0;
+    left: 0;
+    background-color: rgba(0,0,0,0.05);
+    overflow: auto;
+}
+
+#devices > div {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border: 4px solid rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+    transition: 0.5s border ease-in-out, 0.5s background-color ease-in-out
+}
+
+#devices > div:after {
+    content: '';
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100px;
+    height: 100px;
+    background: url('./assets/img/gamepad.png') no-repeat center;
+    background-size: cover;
+    opacity: 0.1;
+    transition: 0.5s opacity ease;
+}
+
+#devices > div#keyboard:after {
+    background-image: url('./assets/img/keyboard.png');
+}
+
+#devices > div.detected {
+    border: 4px solid rgba(255,255,255,1);
+    background-color: rgba(255,255,255,0.5);
+}
+#devices > div.detected:after {
+    opacity: 1;
+}
+
+#devices > div.detected-2 {
+    border: 4px solid rgba(0,0,0,0.1);
+    background-color: rgba(255,255,255,0.5);
+    filter:grayscale(1)
+}
+#devices > div.detected-2:after {
+    opacity: 0.3;
+}
+
+h2 {
+    margin: 20px 0;
+    color: rgba(0,0,0,1);
+}
+
+section:not(#devices) > div {
+    border: 4px solid rgba(0,0,0,0.05);
+    padding: 10px 20px;
+    margin-bottom: 10px;
+    color: #BBB;
+}
+
+#raw-events {
+    position: absolute;
+    left: 250px;
+    top: 30px;
+    padding: 20px 50px 50px;
+    background-color: rgba(0,0,0,0.05);
+}
+
+#raw-events:after {
+    content: '';
+    display: block;
+    width: 42px;
+    height: 10px;
+    background-color:rgba(0,0,0,0.05);
+    position: absolute;
+    left: -42px;
+    top: 40px;
+}
+
+#button-events {
+    position: absolute;
+    left: 651px;
+    top: 30px;
+    padding: 20px 50px 50px;
+    background-color: rgba(0,0,0,0.05);
+}
+#button-events:after {
+    content: '';
+    display: block;
+    width: 42px;
+    height: 10px;
+    background-color:rgba(0,0,0,0.05);
+    position: absolute;
+    left: -42px;
+    top: 40px;
+}
+
+#mapped-events {
+    position: absolute;
+    left: 935px;
+    top: 30px;
+    padding: 20px 50px 50px;
+    background-color: rgba(0,0,0,0.05);
+}
+#mapped-events:after {
+    content: '';
+    display: block;
+    width: 42px;
+    height: 10px;
+    background-color:rgba(0,0,0,0.05);
+    position: absolute;
+    left: -42px;
+    top: 40px;
+}
+
+/* #interface {
     position: absolute;
     height: 100%;
     width: 100%;
@@ -135,5 +267,5 @@ body {
 
 .device.active .info p:nth-child(2) {
     opacity: 1;
-}
+} */
 
