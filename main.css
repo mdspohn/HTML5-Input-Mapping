@@ -126,7 +126,7 @@ canvas {
     background-repeat: no-repeat;
     background-size: 100%;
     background-position: center;
-    border-color: #eee;
+    border-color: rgba(0,0,0,0.1);
     background-color: #fff;
     opacity: 1;
 }
@@ -136,7 +136,7 @@ canvas {
     background-repeat: no-repeat;
     background-size: 100%;
     background-position: center;
-    border-color: #eee;
+    border-color: rgba(0,0,0,0.1);
     background-color: #fff;
     opacity: 1;
 }
@@ -163,18 +163,7 @@ canvas {
     border: 5px solid rgba(0,0,0,0.1);
     background-color: #d8d7d4;
     overflow: hidden;
-}
-
-#devices #active-device:before {
-    content: '';
-    display: block;
-    position: absolute;
-    top: 137px;
-    left: -60px;
-    width: 400px;
-    height: 5px;
-    background-color: rgba(0,0,0,0.1);
-    transform: rotate(45deg);
+    transition: 300ms background-color ease-in-out, 300ms border-color ease-in-out;
 }
 
 #devices #active-device.keyboard, #devices #active-device.gamepad {
