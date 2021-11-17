@@ -53,12 +53,11 @@ class DeviceManager {
 
         if (this.connection !== null) {
             this.connection.active = false;
-            DeviceManager.dispatch('device-connected', { previous: this.connection, device });
         }
 
         device.active = true;
+        DeviceManager.dispatch('device-connected', { previous: this.connection, device });
         this.connection = device;
-        DeviceManager.dispatch('device-connected', { previous: null, device });
 
         device.requestingConnection = false;
     }

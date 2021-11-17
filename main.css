@@ -52,7 +52,6 @@ input, textarea ,select {
 
 body {
     font-family: Montserrat, sans-serif;
-    overflow-x: hidden;
     position: relative;
     word-spacing: -1px;
     font-size: 20px;
@@ -64,208 +63,218 @@ body {
     user-select: none;
 }
 
-#interface {
-    min-height: 100vh;
-    min-width: 100vw;
-    background-color: rgba(0,0,0,0.05);
-}
-
-#active-device {
+canvas {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
 }
+
+#interface {
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background-color: #f7f6f2;
+}
+
+/* ----------------
+// Idle Devices
+------------------- */
 
 #devices {
     position: absolute;
-    height: calc(100% - 70px);
-    padding: 20px 50px 50px;
-    top: 0;
-    left: 0;
-    background-color: rgba(0,0,0,0.05);
-    overflow: auto;
+    top: 20px;
+    left: 20px;
 }
 
-#devices > div {
+#devices #idle-devices {
+    display: inline-block;
+    margin-right: 15px;
+}
+
+#devices #idle-devices > div {
     position: relative;
-    width: 100px;
-    height: 100px;
-    border: 4px solid rgba(0,0,0,0.05);
-    margin-bottom: 20px;
-    transition: 0.5s border ease-in-out, 0.5s background-color ease-in-out
+    width: 40px;
+    height: 40px;
+    border: 5px solid rgba(0,0,0,0.1);
+    margin-bottom: 10px;
+    background-color: rgba(0,0,0,0.1);
+    overflow: hidden;
+    opacity: 0.5;
+    transition: 300ms border-color ease-in-out;
 }
 
-#devices > div:after {
+#devices #idle-devices > div:last-child {
+    margin-bottom: 0;
+}
+
+#devices #idle-devices > div:before {
     content: '';
+    display: block;
     position: absolute;
-    top: 0px;
-    left: 0px;
-    width: 100px;
-    height: 100px;
-    background: url('./assets/img/gamepad.png') no-repeat center;
-    background-size: cover;
-    opacity: 0.1;
-    transition: 0.5s opacity ease;
+    top: 25px;
+    left: -12px;
+    width: 80px;
+    height: 5px;
+    background-color: rgba(0,0,0,0.1);
+    transform: rotate(45deg);
 }
 
-#devices > div#keyboard:after {
+#devices #idle-devices > div.keyboard {
     background-image: url('./assets/img/keyboard.png');
-}
-
-#devices > div.detected {
-    border: 4px solid rgba(255,255,255,1);
-    background-color: rgba(255,255,255,0.5);
-}
-#devices > div.detected:after {
+    background-repeat: no-repeat;
+    background-size: 100%;
+    background-position: center;
+    border-color: #eee;
+    background-color: #fff;
     opacity: 1;
 }
 
-#devices > div.detected-2 {
-    border: 4px solid rgba(0,0,0,0.1);
-    background-color: rgba(255,255,255,0.5);
-    filter:grayscale(1)
-}
-#devices > div.detected-2:after {
-    opacity: 0.3;
-}
-
-h2 {
-    margin: 20px 0;
-    color: rgba(0,0,0,1);
+#devices #idle-devices > div.gamepad {
+    background-image: url('./assets/img/gamepad.png');
+    background-repeat: no-repeat;
+    background-size: 100%;
+    background-position: center;
+    border-color: #eee;
+    background-color: #fff;
+    opacity: 1;
 }
 
-section:not(#devices) > div {
-    border: 4px solid rgba(0,0,0,0.05);
-    padding: 10px 20px;
-    margin-bottom: 10px;
-    color: #BBB;
+#devices #idle-devices > div.enabled {
+    border-color: rgb(65, 185, 101);
 }
 
-#raw-events {
-    position: absolute;
-    left: 250px;
-    top: 30px;
-    padding: 20px 50px 50px;
-    background-color: rgba(0,0,0,0.05);
-}
-
-#raw-events:after {
-    content: '';
-    display: block;
-    width: 42px;
-    height: 10px;
-    background-color:rgba(0,0,0,0.05);
-    position: absolute;
-    left: -42px;
-    top: 40px;
-}
-
-#button-events {
-    position: absolute;
-    left: 651px;
-    top: 30px;
-    padding: 20px 50px 50px;
-    background-color: rgba(0,0,0,0.05);
-}
-#button-events:after {
-    content: '';
-    display: block;
-    width: 42px;
-    height: 10px;
-    background-color:rgba(0,0,0,0.05);
-    position: absolute;
-    left: -42px;
-    top: 40px;
-}
-
-#mapped-events {
-    position: absolute;
-    left: 935px;
-    top: 30px;
-    padding: 20px 50px 50px;
-    background-color: rgba(0,0,0,0.05);
-}
-#mapped-events:after {
-    content: '';
-    display: block;
-    width: 42px;
-    height: 10px;
-    background-color:rgba(0,0,0,0.05);
-    position: absolute;
-    left: -42px;
-    top: 40px;
-}
-
-/* #interface {
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-evenly;
-    align-items: center;
-    
-}
-.device {
-    position: relative;
-    width: calc(50% - 5px);
-    height: calc(50% - 3px);
-    background-color: #F5F5F5;
-    vertical-align: middle;
-}
-
-.device.active {
-    background-color: #FFFFFF;
-}
-
-.device canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-}
-
-.device .info {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 2;
-}
-
-@keyframes blink {
-    0%   { opacity: 0.2 }
-    100% { opacity: 1 }
-}
-
-.device .info p:first-child {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    animation-name: blink;
-    animation-duration: 2s;
-    animation-timing-function: ease-in-out;
-    animation-direction: alternate;
-    animation-iteration-count: infinite;
-}
-
-.device.enabled .info p:first-child {
+#devices #idle-devices > div.gamepad:before, #devices #idle-devices > div.keyboard:before {
     display: none;
 }
 
-.device .info p:nth-child(2) {
-    opacity: 0;
-    transition: 1s opacity ease-in-out;
-    padding: 20px;
+/* ----------------
+// Active Device
+------------------- */
+
+#devices #active-device {
+    position: relative;
+    z-index: 10;
+    display: inline-block;
+    background-color: #fff;
+    height: 280px;
+    width: 280px;
+    border: 5px solid rgba(0,0,0,0.1);
+    background-color: #d8d7d4;
+    overflow: hidden;
 }
 
-.device.active .info p:nth-child(2) {
-    opacity: 1;
-} */
+#devices #active-device:before {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 137px;
+    left: -60px;
+    width: 400px;
+    height: 5px;
+    background-color: rgba(0,0,0,0.1);
+    transform: rotate(45deg);
+}
+
+#devices #active-device.keyboard, #devices #active-device.gamepad {
+    background-repeat: no-repeat;
+    background-size: 100%;
+    background-position: center;
+    border-color: #EEE;
+    background-color: #FFF;
+}
+
+#devices #active-device.keyboard { background-image: url('./assets/img/keyboard.png'); }
+#devices #active-device.gamepad { background-image: url('./assets/img/gamepad.png'); }
+#devices #active-device.gamepad:before, #devices #active-device.keyboard:before { display: none; }
+
+/* ----------------
+// Idle Devices
+------------------- */
+
+#input-events {
+    position: absolute;
+    top: 360px;
+    left: 20px;
+    width: 350px;
+    height: 220px;
+    border: 5px solid rgba(0,0,0,0.2);
+}
+
+#input-events.enabled {
+    top: 325px;
+    transition: 500ms top ease-out;
+}
+
+#input-events .inner-wrapper {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-color: #e0e0dc;
+    z-index: 2;
+}
+
+#input-events:before {
+    content: '';
+    display: block;
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 5px;
+    height: 0;
+    background-color: #eee;
+    z-index: 1;
+}
+#input-events:after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 0;
+    height: 5px;
+    background-color: #eee;
+    z-index: 1;
+}
+
+#input-events.enabled:before, #input-events.enabled:after {
+    height: calc(100% + 10px);
+    width: calc(100% + 10px);
+}
+
+#input-events.enabled:before { transition: 200ms height ease 500ms, 200ms width ease 700ms; }
+#input-events.enabled:after { transition: 200ms width ease 500ms, 200ms height ease 700ms; }
+#input-events.enabled .inner-wrapper {
+    background-color: #FFF;
+    transition: 400ms background-color ease-in-out 900ms;
+}
+
+#input-events .inner-wrapper:before {
+    content: '';
+    display: block;
+    position: absolute;
+    right: -20px;
+    top: -64px;
+    width: 60px;
+    height: 60px;
+    background-image: url('./assets/img/plug-1.png');
+    background-repeat: no-repeat;
+    background-size: 100%;
+    background-position: bottom -30px center;
+}
+
+#input-events.enabled .inner-wrapper:before {
+    opacity: 0;
+    transition: 500ms opacity ease-in-out 900ms;
+}
+
+#input-events h1 {
+    text-align: center;
+    padding: 18px 0;
+    text-transform: uppercase;
+    font-variant: small-caps;
+}
 

@@ -8,70 +8,38 @@
   </head>
   <body>
 
+    <canvas id="canvas"></canvas>
+
     <!-------------------------------->
     <!-- Interface ------------------->
     <!-------------------------------->
 
     <section id="interface">
       <section id="devices">
-        <h2>Devices</h2>
-        <div id="keyboard" class="device detected"></div>
-        <div id="gamepad-1" class="device detected"></div>
-        <div id="gamepad-2" class="device detected-2"></div>
-        <div id="gamepad-3" class="device"></div>
-        <div id="gamepad-4" class="device"></div>
+        <section id="idle-devices">
+          <div id="slot-keyboard" class="keyboard"></div>
+          <div id="slot-0"></div>
+          <div id="slot-1"></div>
+          <div id="slot-2"></div>
+          <div id="slot-3"></div>
+        </section>
+        <section id="active-device"></section>
       </section>
-      <section id="raw-events">
-        <h2>Raw Events</h2>
-        <div>Device Detected</div>
-        <div>Device Connected</div>
-        <div>Device Disconnected</div>
-        <div>Input</div>
+      <section id="input-events">
+        <section class="inner-wrapper">
+          <h1>INPUT EVENTS</h1>
+          <section class="gamepad">
+  
+          </section>
+          <section class="keyboard">
+  
+          </section>
+        </section>
+        <!-- <div>Drop Anchor</div>
+        <div>Hoist Anchor</div>
+        <div>Fire!</div> -->
       </section>
-      <section id="button-events">
-        <h2>Button Events</h2>
-        <div>Pressed</div>
-        <div>Held</div>
-        <div>Released</div>
-      </section>
-      <section id="mapped-events">
-        <h2>Mapped Actions</h2>
-        <div>Space -> Create Canvas Object</div>
-        <div>Esc -> Disconnect Device</div>
-      </section>
-      <canvas width="420" height="270"></canvas>
     </section>
-
-    <!-- <section id="interface">
-      <section id="player-0" class="device">
-        <canvas></canvas>
-        <section class="info">
-          <p>Press any key or button...</p>
-          <p></p>
-        </section>
-      </section>
-      <section id="player-1" class="device">
-        <canvas></canvas>
-        <section class="info">
-          <p>Press any key or button...</p>
-          <p></p>
-        </section>
-      </section>
-      <section id="player-2" class="device">
-        <canvas></canvas>
-        <section class="info">
-          <p>Press any key or button...</p>
-          <p></p>
-        </section>
-      </section>
-      <section id="player-3" class="device">
-        <canvas></canvas>
-        <section class="info">
-          <p>Press any key or button...</p>
-          <p></p>
-        </section>
-      </section>
-    </section> -->
     
   </body>
 
@@ -89,7 +57,7 @@
   <!---------------------------------->
 
   <script type="text/javascript">
-    // const Demo = new DemoController();
-    // Demo.load().then(() => Demo.start());
+    const Demo = new DemoController();
+    Demo.load().then(() => Demo.start());
   </script>
 </html>
