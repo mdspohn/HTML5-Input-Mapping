@@ -41,6 +41,8 @@ class DemoController {
             setTimeout(() => {
                 this.inputEvents.classList.toggle('enabled', true);
             }, 0);
+            this.inputEvents.classList.toggle((e.detail.device instanceof Gamepad) ? 'gamepad' : 'keyboard', true);
+            this.inputEvents.classList.toggle((e.detail.device instanceof Gamepad) ? 'keyboard' : 'gamepad', false);
         });
 
         window.addEventListener('device-disconnected', e => {

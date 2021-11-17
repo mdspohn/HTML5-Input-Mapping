@@ -241,6 +241,12 @@ canvas {
     transition: 400ms background-color ease-in-out 900ms;
 }
 
+#input-events .inner-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
 #input-events .inner-wrapper:before {
     content: '';
     display: block;
@@ -260,10 +266,67 @@ canvas {
     transition: 500ms opacity ease-in-out 900ms;
 }
 
-#input-events h1 {
-    text-align: center;
-    padding: 18px 0;
-    text-transform: uppercase;
-    font-variant: small-caps;
+#input-events .inner-wrapper > section {
+    position: relative;
+    height: 100%;
+    width: 100%;
 }
 
+#input-events .inner-wrapper section {
+    display: none;
+    position: relative;
+}
+
+#input-events .inner-wrapper section > div > span:last-child {
+    float: right;
+}
+
+#input-events.gamepad .gamepad { display: block; }
+#input-events.keyboard .keyboard { display: block; }
+#input-events .inner-wrapper section > div {
+    opacity: 0;
+}
+#input-events.enabled .inner-wrapper section > div {
+    height: 73px;
+    line-height: 73px;
+    padding: 0 30px 0 15px;
+    opacity: 1;
+    transition: 500ms opacity ease-in-out 1100ms;
+}
+#input-events div:nth-child(even) {
+    background-color: rgba(0,0,0,0.03);
+}
+
+.icon {
+    width: 50px;
+    height: 50px;
+    padding-top: 11px;
+    /* image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges; */
+}
+
+.keyboard .icon.drop-anchor {
+}
+.keyboard .icon.hoist-anchor {
+}
+.keyboard .icon.fire-cannon {
+    height: 75px;
+    width: 75px;
+    padding-top: 0;
+
+}
+
+.gamepad .icon.drop-anchor {
+
+}
+.gamepad .icon.hoist-anchor {
+
+}
+.gamepad .icon.fire-cannon {
+    height: 50px;
+    width: 100px;
+    padding-top: 11px;
+    margin-left: -4px;
+
+}
