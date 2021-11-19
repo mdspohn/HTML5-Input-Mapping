@@ -153,13 +153,14 @@ class DemoController {
         degrees *= Math.max(1, 5 * ((this.anchorY - (this.anchorMaxDepth * 0.8)) / (this.anchorMaxDepth * 0.2)));
 
         this.drawRotation(this.img.anchor, this.shipX + 80 + (this.anchorY / 6), this.shipY + yOffset + this.anchorY, 60, 60, degrees);
-        this.ctx.beginPath();
-        this.ctx.moveTo(this.shipX + 120, this.shipY + yOffset + 10);
-        this.ctx.lineTo(this.shipX + 120 + (degrees / 3) + (this.anchorY / 6), this.shipY + yOffset + this.anchorY + 5);
-        this.ctx.strokeStyle = '#5a6870';
-        this.ctx.lineWidth = 2;
-        this.ctx.stroke();
-        //this.ctx.drawImage(this.img.anchor, 0, 0, 60, 60, this.shipX + 80, this.shipY + yOffset + this.anchorY, 60, 60);
+        if (this.anchorY > 10) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.shipX + 120, this.shipY + yOffset + 10);
+            this.ctx.lineTo(this.shipX + 120 + Math.max(degrees / 4, -5) + ((degrees + 20) / 80) * 30 + (this.anchorY / 6), this.shipY + yOffset + this.anchorY);
+            this.ctx.strokeStyle = '#5a6870';
+            this.ctx.lineWidth = 2;
+            this.ctx.stroke();
+        }
     }
 
     renderForeground() {
