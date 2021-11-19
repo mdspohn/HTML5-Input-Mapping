@@ -69,6 +69,7 @@ canvas {
     left: 0;
     width: 100%;
     height: 100%;
+    background-color: #f7f6f2;
 }
 
 #interface {
@@ -86,11 +87,14 @@ canvas {
     position: absolute;
     top: 20px;
     left: 20px;
+    width: 360px;
+    height: 290px;
 }
 
 #devices #idle-devices {
-    display: inline-block;
-    margin-right: 15px;
+    position: absolute;
+    left: 0;
+    top: 0;
 }
 
 #devices #idle-devices > div {
@@ -154,9 +158,10 @@ canvas {
 ------------------- */
 
 #devices #active-device {
-    position: relative;
+    position: absolute;
+    top: 0;
+    right: 0;
     z-index: 10;
-    display: inline-block;
     background-color: #fff;
     height: 280px;
     width: 280px;
@@ -301,15 +306,8 @@ canvas {
     width: 50px;
     height: 50px;
     padding-top: 11px;
-    /* image-rendering: pixelated;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: crisp-edges; */
 }
 
-.keyboard .icon.drop-anchor {
-}
-.keyboard .icon.hoist-anchor {
-}
 .keyboard .icon.fire-cannon {
     height: 75px;
     width: 75px;
@@ -317,12 +315,6 @@ canvas {
 
 }
 
-.gamepad .icon.drop-anchor {
-
-}
-.gamepad .icon.hoist-anchor {
-
-}
 .gamepad .icon.fire-cannon {
     height: 50px;
     width: 100px;

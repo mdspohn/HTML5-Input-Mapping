@@ -9,7 +9,7 @@ class DeviceManager {
     static AXIS_DRIFT = 0.25;
 
     // time passed, in milliseconds, before button-held actions are registed on device-input events
-    static HOLD_DELAY = 500;
+    static HOLD_DELAY = 50;
 
     static dispatch(id, detail, cancelable = false) {
         const e = new CustomEvent(id, { detail, cancelable });

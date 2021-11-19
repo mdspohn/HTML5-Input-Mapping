@@ -18,12 +18,44 @@ class DemoController {
         this.img = new Object();
         this.img.keyboard = new Image();
         this.img.gamepad = new Image();
+        this.img.ship = new Image();
+        this.img.seaFG = new Image();
+        this.img.anchor = new Image();
 
         this.lastConnectedIndex = null;
 
+        this.shipX = 0;
+        this.shipY = 0;
+
+        this.anchorX = 0;
+        this.anchorY = 0;
+        this.anchorDirection = 0;
+        this.anchorMaxDepth = 300;
+
+        this.resize();
+
         // Event Listeners
         window.addEventListener('device-input', e => {
-            // TODO
+            const device = e.detail.device,
+                  buttons = e.detail.buttons;
+            
+            if (device instanceof Gamepad) {
+                if (buttons.hasOwnProperty(13) && buttons[13].state === 'press') {
+                    this.dropAnchor();
+                } else if (buttons.hasOwnProperty(12) && buttons[12].state === 'hold') {
+                    this.hoistAnchor();
+                } else if (this.anchorDirection === -1) {
+                    this.anchorDirection = 0;
+                }
+            } else {
+                if (buttons.hasOwnProperty('ArrowDown') && buttons['ArrowDown'].state === 'press') {
+                    this.dropAnchor();
+                } else if (buttons.hasOwnProperty('ArrowUp') && buttons['ArrowUp'].state === 'hold') {
+                    this.hoistAnchor();
+                } else if (this.anchorDirection === -1) {
+                    this.anchorDirection = 0;
+                }
+            }
         });
 
         window.addEventListener('device-detected', e => {
@@ -56,6 +88,21 @@ class DemoController {
                 this.gamepads[device.index].className = '';
         });
 
+        window.addEventListener('resize', () => this.resize());
+        window.addEventListener('fullscreenchange', () => this.resize());
+    }
+
+    resize() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+
+        this.canvas.style.width = this.canvas.width + 'px';
+        this.canvas.style.height = this.canvas.height + 'px';
+
+        this.shipX = Math.min(this.canvas.width - 400, this.canvas.width / 2);
+        this.shipY = 20;
+
+        this.ms = 0;
     }
 
     changeActive(slot) {
@@ -70,17 +117,90 @@ class DemoController {
         this.active.className = (slot !== null) ? 'gamepad' : 'keyboard';
     }
 
+    renderShip(delta) {
+        const yOffset = Math.sin(this.ms / 200);
+        this.ctx.drawImage(this.img.ship, 0, 0, this.img.ship.width, this.img.ship.height, this.shipX, this.shipY + yOffset, this.img.ship.width, this.img.ship.height);
+    }
+
+    drawRotation(img, x, y, w, h, deg) {
+        this.ctx.save();
+        this.ctx.translate(x+w/2, y+h/2);
+        this.ctx.rotate(deg * Math.PI / 180.0);
+        this.ctx.translate(-x-w/2 + (-deg / 4), -y-h/2);
+        this.ctx.drawImage(img, x, y, w, h);
+        this.ctx.restore();
+    }
+
+    renderAnchor(delta) {
+        let yOffset = 305 + Math.sin(this.ms / 200),
+            degrees = 0;
+
+        if (this.anchorDirection > 0) {
+            if (this.anchorY < this.anchorMaxDepth) {
+                this.anchorY = Math.min(this.anchorMaxDepth, this.anchorY + (this.anchorMaxDepth * (delta / 1000)));
+            } else {
+                this.anchorDirection = 0;
+            }
+        } else if (this.anchorDirection < 0) {
+            if (this.anchorY > 0) {
+                this.anchorY = Math.max(0, this.anchorY - (this.anchorMaxDepth * (delta / 2000)));
+            } else {
+                this.anchorDirection = 0;
+            }
+        }
+
+        degrees = -20 * Math.min(1, this.anchorY / 50);
+        degrees *= Math.max(1, 5 * ((this.anchorY - (this.anchorMaxDepth * 0.8)) / (this.anchorMaxDepth * 0.2)));
+
+        this.drawRotation(this.img.anchor, this.shipX + 80 + (this.anchorY / 6), this.shipY + yOffset + this.anchorY, 60, 60, degrees);
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.shipX + 120, this.shipY + yOffset + 10);
+        this.ctx.lineTo(this.shipX + 120 + (degrees / 3) + (this.anchorY / 6), this.shipY + yOffset + this.anchorY + 5);
+        this.ctx.strokeStyle = '#5a6870';
+        this.ctx.lineWidth = 2;
+        this.ctx.stroke();
+        //this.ctx.drawImage(this.img.anchor, 0, 0, 60, 60, this.shipX + 80, this.shipY + yOffset + this.anchorY, 60, 60);
+    }
+
+    renderForeground() {
+        this.ctx.drawImage(this.img.seaFG, 0, 0, 300, 10, this.shipX + 50, this.shipY + 352, 300, 10);
+    }
+
+    renderCannonFire(delta) {
+        // TODO
+    }
+
     update(delta) {
+        this.ms += delta;
         this.input.update(delta);
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.renderShip(delta);
+        this.renderAnchor(delta);
+        this.renderForeground();
+        this.renderCannonFire(delta);
+    }
+
+    dropAnchor() {
+        this.anchorDirection = 1;
+    }
+
+    hoistAnchor() {
+        this.anchorDirection = -1;
     }
 
     load() {
         const images = new Array();
         images.push(new Promise((resolve => this.img.keyboard.onload = resolve)));
         images.push(new Promise((resolve => this.img.gamepad.onload  = resolve)));
+        images.push(new Promise((resolve => this.img.ship.onload  = resolve)));
+        images.push(new Promise((resolve => this.img.seaFG.onload  = resolve)));
+        images.push(new Promise((resolve => this.img.anchor.onload  = resolve)));
 
         this.img.keyboard.src = './assets/img/keyboard.png';
         this.img.gamepad.src = './assets/img/gamepad.png';
+        this.img.ship.src = './assets/img/ship.png';
+        this.img.seaFG.src = './assets/img/sea-foreground.png';
+        this.img.anchor.src = './assets/img/anchor.png';
 
         return Promise.all(images);
     }
