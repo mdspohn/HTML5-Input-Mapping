@@ -159,6 +159,8 @@ canvas {
 
 #devices #active-device {
     position: absolute;
+    display: flex;
+    align-items: center;
     top: 0;
     right: 0;
     z-index: 10;
@@ -171,12 +173,31 @@ canvas {
     transition: 300ms background-color ease-in-out, 300ms border-color ease-in-out;
 }
 
+@keyframes blink-animation {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+  }
+#devices #active-device p {
+    text-align: center;
+    animation: blink-animation 1s infinite;
+    animation-direction: alternate-reverse;
+    color: #333;
+}
+
 #devices #active-device.keyboard, #devices #active-device.gamepad {
     background-repeat: no-repeat;
     background-size: 100%;
     background-position: center;
     border-color: #EEE;
     background-color: #FFF;
+}
+
+#devices #active-device.keyboard p, #devices #active-device.gamepad p {
+    display: none;
 }
 
 #devices #active-device.keyboard { background-image: url('./assets/img/keyboard.png'); }

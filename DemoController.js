@@ -21,6 +21,7 @@ class DemoController {
         this.img.ship = new Image();
         this.img.seaFG = new Image();
         this.img.anchor = new Image();
+        this.img.smoke = new Image();
 
         this.lastConnectedIndex = null;
 
@@ -31,6 +32,8 @@ class DemoController {
         this.anchorY = 0;
         this.anchorDirection = 0;
         this.anchorMaxDepth = 300;
+
+        this.cannonEffects = new Array();
 
         this.resize();
 
@@ -47,6 +50,9 @@ class DemoController {
                 } else if (this.anchorDirection === -1) {
                     this.anchorDirection = 0;
                 }
+
+                if (buttons.hasOwnProperty(0) && buttons[0].state === 'press')
+                    this.fireCannon();
             } else {
                 if (buttons.hasOwnProperty('ArrowDown') && buttons['ArrowDown'].state === 'press') {
                     this.dropAnchor();
@@ -55,6 +61,9 @@ class DemoController {
                 } else if (this.anchorDirection === -1) {
                     this.anchorDirection = 0;
                 }
+
+                if (buttons.hasOwnProperty(' ') && buttons[' '].state === 'press')
+                    this.fireCannon();
             }
         });
 
@@ -168,7 +177,18 @@ class DemoController {
     }
 
     renderCannonFire(delta) {
-        // TODO
+        const toRemove = new Array();
+        this.cannonEffects.forEach((cannonBall, i) => {
+            const idx = Math.floor(cannonBall.ms / 40);
+            cannonBall.ms += delta;
+            if (idx > this.img.smoke.width / 120) {
+                toRemove.push(i);
+            } else {
+                this.ctx.drawImage(this.img.smoke, Math.floor(cannonBall.ms / 40) * 120, 0, 120, 120, this.shipX + 102 + cannonBall.x, this.shipY + 265, 120, 120);
+            }
+        });
+        toRemove.sort((a, b) => a - b);
+        toRemove.forEach(i => this.cannonEffects.splice(i, 1));
     }
 
     update(delta) {
@@ -189,6 +209,13 @@ class DemoController {
         this.anchorDirection = -1;
     }
 
+    fireCannon() {
+        const cannonBall = new Object();
+        cannonBall.ms = 0;
+        cannonBall.x = Math.floor(Math.random() * 4) * 38;
+        this.cannonEffects.push(cannonBall);
+    }
+
     load() {
         const images = new Array();
         images.push(new Promise((resolve => this.img.keyboard.onload = resolve)));
@@ -196,12 +223,14 @@ class DemoController {
         images.push(new Promise((resolve => this.img.ship.onload  = resolve)));
         images.push(new Promise((resolve => this.img.seaFG.onload  = resolve)));
         images.push(new Promise((resolve => this.img.anchor.onload  = resolve)));
+        images.push(new Promise((resolve => this.img.smoke.onload  = resolve)));
 
         this.img.keyboard.src = './assets/img/keyboard.png';
         this.img.gamepad.src = './assets/img/gamepad.png';
         this.img.ship.src = './assets/img/ship.png';
         this.img.seaFG.src = './assets/img/sea-foreground.png';
         this.img.anchor.src = './assets/img/anchor.png';
+        this.img.smoke.src = './assets/img/smoke-spritesheet.png';
 
         return Promise.all(images);
     }
